@@ -11,6 +11,9 @@
 package freelay
 
 import (
+	"os"
+	"strconv"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/params"
@@ -50,7 +53,15 @@ func NewRelayConfig(network, url string, pk *types.PublicKey, sk *bls.SecretKey)
 		forkVersionCapella = CapellaForkVersionGoerli
 		chainID = params.GoerliChainConfig.ChainID.Uint64()
 	default:
-		return nil, ErrUnknownNetwork
+		genesisForkVersion = os.Getenv("GENESIS_FORK_VERSION")
+		genesisValidatorsRoot = os.Getenv("GENESIS_VALIDATORS_ROOT")
+		forkVersionCapella = os.Getenv("FORK_VERSION_CAPELLA")
+
+		chainIDParsed, err := strconv.ParseUint(os.Getenv("CHAIN_ID"), 10, 64)
+		if err != nil {
+			panic(err)
+		}
+		chainID = chainIDParsed
 	}
 
 	domainBuilder, err := computeDomain(types.DomainTypeAppBuilder, genesisForkVersion, types.Root{}.String())
